@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/focus-tracker/static/css/main.2625d815.css",
+    "main.js": "/focus-tracker/static/js/main.edf6f585.js",
+    "index.html": "/focus-tracker/index.html",
+    "main.2625d815.css.map": "/focus-tracker/static/css/main.2625d815.css.map",
+    "main.edf6f585.js.map": "/focus-tracker/static/js/main.edf6f585.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2625d815.css",
+    "static/js/main.edf6f585.js"
+  ]
+}
