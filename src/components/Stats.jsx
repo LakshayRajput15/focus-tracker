@@ -1,37 +1,54 @@
 import { useState, useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
+} from "recharts";
 
 export default function Stats() {
-  const [data, setData] = useState(
-    JSON.parse(localStorage.getItem("sessions")) || []
-  );
+  const [data, setData] = useState([]);
 
-  // 🔄 Auto update every second
   useEffect(() => {
     const interval = setInterval(() => {
-      const updated =
-        JSON.parse(localStorage.getItem("sessions")) || [];
-      setData(updated);
+      const user = localStorage.getItem("user");
+
+      const sessions =
+        JSON.parse(localStorage.getItem(`${user}_sessions`)) || [];
+
+      setData(sessions);
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   const totalTime = data.reduce(
-    (sum, item) => sum + item.time,
+    (sum, item) => sum + Number(item.time),
     0
   );
 
   return (
     <div>
-      <h2>📊 Stats</h2>
+      <h2>📊 Live Stats</h2>
 
       <h3>Total Focus Time: {totalTime} mins</h3>
 
-      <LineChart width={300} height={200} data={data}>
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Line dataKey="time" />
+      <LineChart width={400} height={250} data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+        <XAxis dataKey="date" stroke="#94a3b8" />
+        <YAxis stroke="#94a3b8" />
+        <Tooltip />
+
+        <Line
+          type="monotone"
+          dataKey="time"
+          stroke="#3b82f6"
+          strokeWidth={3}
+          dot={{ r: 4 }}
+          isAnimationActive={true}
+        />
       </LineChart>
     </div>
   );

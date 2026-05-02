@@ -1,24 +1,27 @@
 import { useState, useEffect } from "react";
 
 export default function TaskManager() {
+  const user = localStorage.getItem("user");
+
   const [tasks, setTasks] = useState(
-    JSON.parse(localStorage.getItem("tasks")) || []
+    JSON.parse(localStorage.getItem(`${user}_tasks`)) || []
   );
+
   const [input, setInput] = useState("");
 
-  // 💾 Save tasks
+  // 💾 save tasks
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    localStorage.setItem(`${user}_tasks`, JSON.stringify(tasks));
   }, [tasks]);
 
-  // 🔔 Ask permission
+  // 🔔 permission
   useEffect(() => {
     if ("Notification" in window) {
       Notification.requestPermission();
     }
   }, []);
 
-  // 🔊 Beep sound function
+  // 🔊 beep
   function playBeep() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioCtx.createOscillator();
@@ -26,47 +29,104 @@ export default function TaskManager() {
     oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
     oscillator.connect(audioCtx.destination);
     oscillator.start();
-    setTimeout(() => {
-      oscillator.stop();
-    }, 300);
+    setTimeout(() => oscillator.stop(), 300);
   }
 
+  // 🟢 ADD TASK
   const addTask = () => {
     if (!input) return;
-    setTasks([
-      ...tasks,
-      { text: input, done: false, priority: false },
-    ]);
+
+    const newTask = {
+      text: input,
+      done: false,
+      priority: false,
+      date: new Date().toLocaleString(),
+    };
+
+    const updated = [...tasks, newTask];
+    setTasks(updated);
+
+    // history
+    const history =
+      JSON.parse(localStorage.getItem(`${user}_history`)) || [];
+
+    history.push({
+      type: "ADD",
+      message: `Added task: ${input}`,
+      date: new Date().toLocaleString(),
+    });
+
+    localStorage.setItem(`${user}_history`, JSON.stringify(history));
+
     setInput("");
   };
 
+  // 🟢 COMPLETE TASK
   const toggleTask = (index) => {
     const updated = [...tasks];
     updated[index].done = !updated[index].done;
 
+    setTasks(updated);
+
+    // notification + sound
     if (updated[index].done) {
-      // 🔔 Notification
       if (Notification.permission === "granted") {
         new Notification("Task Completed ✅");
       } else {
         alert("Task Completed ✅");
       }
-
-      // 🔊 Sound
       playBeep();
     }
 
-    setTasks(updated);
+    // history
+    const history =
+      JSON.parse(localStorage.getItem(`${user}_history`)) || [];
+
+    history.push({
+      type: "COMPLETE",
+      message: `Completed task: ${updated[index].text}`,
+      date: new Date().toLocaleString(),
+    });
+
+    localStorage.setItem(`${user}_history`, JSON.stringify(history));
   };
 
+  // 🟢 DELETE TASK
   const deleteTask = (index) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+    const deleted = tasks[index];
+
+    const updated = tasks.filter((_, i) => i !== index);
+    setTasks(updated);
+
+    const history =
+      JSON.parse(localStorage.getItem(`${user}_history`)) || [];
+
+    history.push({
+      type: "DELETE",
+      message: `Deleted task: ${deleted.text}`,
+      date: new Date().toLocaleString(),
+    });
+
+    localStorage.setItem(`${user}_history`, JSON.stringify(history));
   };
 
+  // 🟢 PRIORITY
   const togglePriority = (index) => {
     const updated = [...tasks];
     updated[index].priority = !updated[index].priority;
+
     setTasks(updated);
+
+    const history =
+      JSON.parse(localStorage.getItem(`${user}_history`)) || [];
+
+    history.push({
+      type: "PRIORITY",
+      message: `Marked important: ${updated[index].text}`,
+      date: new Date().toLocaleString(),
+    });
+
+    localStorage.setItem(`${user}_history`, JSON.stringify(history));
   };
 
   const completedCount = tasks.filter((t) => t.done).length;

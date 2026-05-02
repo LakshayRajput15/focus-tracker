@@ -5,7 +5,7 @@ export default function Timer() {
   const [running, setRunning] = useState(false);
   const [inputMin, setInputMin] = useState(25);
 
-  // 🔊 Beep sound (no mp3 needed)
+  // 🔊 Beep sound
   function playBeep() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioCtx.createOscillator();
@@ -30,17 +30,38 @@ export default function Timer() {
     if (seconds === 0 && running) {
       setRunning(false);
 
-      playBeep(); // 🔊 sound
+      playBeep();
 
+      const user = localStorage.getItem("user");
+
+      // 🟢 sessions save (user-wise)
       const sessions =
-        JSON.parse(localStorage.getItem("sessions")) || [];
+        JSON.parse(localStorage.getItem(`${user}_sessions`)) || [];
 
       sessions.push({
-        date: new Date().toLocaleDateString(),
+        date: new Date().toLocaleString(),
         time: inputMin,
       });
 
-      localStorage.setItem("sessions", JSON.stringify(sessions));
+      localStorage.setItem(
+        `${user}_sessions`,
+        JSON.stringify(sessions)
+      );
+
+      // 🟢 history save
+      const history =
+        JSON.parse(localStorage.getItem(`${user}_history`)) || [];
+
+      history.push({
+        type: "SESSION",
+        message: `Completed ${inputMin} min session`,
+        date: new Date().toLocaleString(),
+      });
+
+      localStorage.setItem(
+        `${user}_history`,
+        JSON.stringify(history)
+      );
 
       alert("Session Complete!");
     }
