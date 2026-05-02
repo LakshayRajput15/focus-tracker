@@ -2,7 +2,7 @@
   "name": "focus-tracker",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://lakshayrajput15.github.io/focus-tracker",
+  "homepage": "https://LakshayRajput15.github.io/focus-tracker",
   "dependencies": {
     "gh-pages": "^6.3.0",
     "react": "^18.0.0",

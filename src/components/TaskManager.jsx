@@ -6,19 +6,56 @@ export default function TaskManager() {
   );
   const [input, setInput] = useState("");
 
+  // 💾 Save tasks
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
+  // 🔔 Ask permission
+  useEffect(() => {
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // 🔊 Beep sound function
+  function playBeep() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+    oscillator.connect(audioCtx.destination);
+    oscillator.start();
+    setTimeout(() => {
+      oscillator.stop();
+    }, 300);
+  }
+
   const addTask = () => {
     if (!input) return;
-    setTasks([...tasks, { text: input, done: false, priority: false }]);
+    setTasks([
+      ...tasks,
+      { text: input, done: false, priority: false },
+    ]);
     setInput("");
   };
 
   const toggleTask = (index) => {
     const updated = [...tasks];
     updated[index].done = !updated[index].done;
+
+    if (updated[index].done) {
+      // 🔔 Notification
+      if (Notification.permission === "granted") {
+        new Notification("Task Completed ✅");
+      } else {
+        alert("Task Completed ✅");
+      }
+
+      // 🔊 Sound
+      playBeep();
+    }
+
     setTasks(updated);
   };
 
@@ -32,11 +69,7 @@ export default function TaskManager() {
     setTasks(updated);
   };
 
-  const clearAll = () => {
-    setTasks([]);
-  };
-
-  const completedCount = tasks.filter(task => task.done).length;
+  const completedCount = tasks.filter((t) => t.done).length;
 
   return (
     <div>
@@ -45,13 +78,12 @@ export default function TaskManager() {
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter task..."
+        placeholder="Enter task"
       />
 
       <button onClick={addTask}>Add</button>
-      <button onClick={clearAll}>🧹 Clear All</button>
 
-      <p>✅ Completed: {completedCount}</p>
+      <p>Completed: {completedCount}</p>
 
       {tasks.map((task, i) => (
         <div key={i}>
@@ -59,12 +91,12 @@ export default function TaskManager() {
             onClick={() => toggleTask(i)}
             style={{
               textDecoration: task.done ? "line-through" : "none",
+              color: task.priority ? "yellow" : "white",
               cursor: "pointer",
               marginRight: "10px",
-              color: task.priority ? "yellow" : "white"
             }}
           >
-            • {task.text}
+            {task.text}
           </span>
 
           <button onClick={() => togglePriority(i)}>⭐</button>
